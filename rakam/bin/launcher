@@ -44,9 +44,12 @@ function check_monitor_running {
     ps -aux | grep $monitor_cmd | grep -v grep > /dev/null && return 0 || return 1
 }
 
+
 if [[ "$*" != *"--skip-monitor-launch"* ]]; then
     if [ "$1" == "start" ]; then
         # Launch the monitor
+        # ...Allow the monitor to execute (it’s 644 after the initial build)
+        chmod +x $monitor_cmd
         # ...Per https://stackoverflow.com/a/29681504/1192426
         eval "${monitor_cmd}" &>/dev/null &disown;
         echo "Started the monitor"
