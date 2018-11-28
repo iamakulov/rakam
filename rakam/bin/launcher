@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/bash -eu
 #
 # Launcher for Airlift applications
 #
@@ -36,4 +36,27 @@
 # Run with --help to see options.
 #
 
-exec "$(dirname "$0")/launcher.py" "$@"
+eval "$(dirname "$0")/launcher.py" "$1"
+
+monitor_script_name="chorus_rakam_monitor.sh"
+monitor_cmd="$(dirname "$0")/$monitor_script_name"
+function check_monitor_running {
+    ps -aux | grep $monitor_cmd | grep -v grep > /dev/null && return 0 || return 1
+}
+
+if [[ "$*" != *"--skip-monitor-launch"* ]]; then
+    if [ "$1" == "start" ]; then
+        # Launch the monitor
+        # ...Per https://stackoverflow.com/a/29681504/1192426
+        eval "${monitor_cmd}" &>/dev/null &disown;
+        echo "Started the monitor"
+    elif [ "$1" == "stop" ] || [ "$1" == "kill" ]; then
+        # Stop the monitor
+        if check_monitor_running; then
+            killall $monitor_script_name
+            echo "Stopped the monitor"
+        else
+            echo "Monitor is not running, not stopping"
+        fi
+    fi
+fi
