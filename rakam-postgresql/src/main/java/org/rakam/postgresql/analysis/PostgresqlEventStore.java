@@ -152,6 +152,15 @@ public class PostgresqlEventStore
                             year, month,
                             month == 12 ? year + 1 : year,
                             month == 12 ? 1 : month + 1));
+
+                    // Modified for Chorus ↓
+                    // Create indexes on _time for each new created partition 
+                    statement.execute(format("CREATE INDEX \"%s~%d_%d___time\" ON %s.\"%s~%d_%d\" (_time DESC)",
+                            collection.replaceAll("\"", ""),
+                            year, month,
+                            checkProject(project, '"'),
+                            collection.replaceAll("\"", ""),
+                            year, month));
                 } catch (SQLException e) {
                     if (!"42P07".equals(e.getSQLState())) {
                         throw new RuntimeException(e);
